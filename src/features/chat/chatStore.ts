@@ -74,7 +74,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
             deleted_at: null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            profile: profile as Profile,
+            profile: (profile as unknown) as Profile,
             reactions: [],
         }
         set(state => ({ messages: [...state.messages, optimistic] }))
@@ -100,7 +100,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
         if (!sanitized) return
 
         await supabase.from('messages')
-            .update({ content: sanitized, is_edited: true })
+            .update({ content: sanitized, is_edited: true } as never)
             .eq('id', messageId)
 
         set(state => ({
@@ -113,7 +113,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     deleteMessage: async (messageId) => {
         // Soft delete
         await supabase.from('messages')
-            .update({ deleted_at: new Date().toISOString() })
+            .update({ deleted_at: new Date().toISOString() } as never)
             .eq('id', messageId)
 
         set(state => ({ messages: state.messages.filter(m => m.id !== messageId) }))
@@ -134,7 +134,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     addReaction: async (messageId, userId, emoji) => {
         await supabase.from('reactions').upsert(
-            { message_id: messageId, user_id: userId, emoji },
+            { message_id: messageId, user_id: userId, emoji } as never,
             { onConflict: 'message_id,user_id,emoji' }
         )
     },
@@ -182,9 +182,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
                     .single()
 
                 if (data) {
+                    const msg = data as unknown as MessageWithProfile
                     const { data: { user } } = await supabase.auth.getUser()
                     // Don't re-add own messages (already added optimistically)
-                    if (data.user_id !== user?.id) {
+                    if (msg.user_id !== user?.id) {
                         get().addMessage(data as unknown as MessageWithProfile)
                     }
                 }
