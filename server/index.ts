@@ -28,8 +28,8 @@ const ALLOWED_ORIGINS = (process.env.VITE_APP_URL || 'http://localhost:5173').sp
 const app = express()
 
 app.use(cors({
-    origin: ALLOWED_ORIGINS,
-    methods: ['POST', 'GET'],
+    origin: true,
+    methods: ['POST', 'GET', 'OPTIONS'],
     credentials: true,
 }))
 app.use(express.json())
